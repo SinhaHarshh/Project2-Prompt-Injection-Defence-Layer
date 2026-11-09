@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechCorp AI Assistant</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #f4f4f4; font-family: Arial, sans-serif; color: #333; }
+        .container {
+            width: min(700px, calc(100% - 32px));
+            margin: 70px auto;
+            padding: 28px;
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 1px 5px rgba(0,0,0,.12);
+        }
+        h2 { margin: 8px 0 18px; font-size: 24px; }
+        p { margin: 0 0 18px; }
+        .input-row { display: flex; gap: 5px; }
+        input[type="text"] {
+            flex: 1; min-width: 0; padding: 13px;
+            border: 1px solid #aaa; font-size: 13px;
+        }
+        button {
+            border: 0; padding: 0 18px; color: white;
+            background: #337ab7; cursor: pointer;
+        }
+        button:hover { background: #286090; }
+        .mode { margin-top: 16px; font-size: 13px; color: #555; }
+        #response {
+            margin-top: 25px; font-family: monospace; font-size: 13px;
+            line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere;
+        }
+        @media (max-width: 520px) {
+            .container { margin: 28px auto; padding: 20px; }
+            .input-row { flex-direction: column; }
+            button { min-height: 42px; }
+        }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <h2>TechCorp AI Assistant</h2>
+        <p>Welcome! Ask your question below.</p>
+
+        <form id="chat-form">
+            <div class="input-row">
+                <input id="message" type="text" placeholder="Ask your question..." required>
+                <button type="submit">Send</button>
+            </div>
+        </form>
+
+        <div class="mode">
+            <label>
+                <input id="baseline" type="checkbox">
+                Use undefended baseline for comparison
+            </label>
+        </div>
+
+        <div id="response" aria-live="polite"></div>
+    </main>
+
+    <script>
+        document.getElementById("chat-form").addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const message = document.getElementById("message").value;
+            const useBaseline = document.getElementById("baseline").checked;
+            const endpoint = useBaseline ? "/ask-raw" : "/ask";
+            const output = document.getElementById("response");
+
+            output.textContent = "Waiting for the AI response...";
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({message: message, history: []})
+                });
+                const data = await response.json();
+                output.textContent = response.status + " - " +
+                    (data.response || data.error || "No response returned.");
+            } catch (error) {
+                output.textContent = "Could not connect to the Flask application.";
+            }
+        });
+    </script>
+</body>
+</html>
